@@ -7,42 +7,36 @@
 </head>
 <body>
     <script>
-        // Função para obter parâmetros da URL
         function getQueryParam(name) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
         }
 
-        // Função para converter data ISO 8601 para timestamp
         function convertToTimestamp(date) {
             const dateObj = new Date(date);
             if (isNaN(dateObj.getTime())) {
-                return null; // Retorna nulo se a data for inválida
+                return null;
             }
             const totalSeconds = dateObj.getTime() / 1000;
             return {
-                timestamp: Math.floor(totalSeconds), 
-                decimal: (totalSeconds % 1).toFixed(1).substring(1) // Parte decimal formatada
+                timestamp: Math.floor(totalSeconds),
+                decimal: (totalSeconds % 1).toFixed(1).substring(1)
             };
         }
 
-        // Obtém a data da URL e gera o JSON
         const date = getQueryParam('data');
         let jsonResponse;
 
         if (date) {
             const result = convertToTimestamp(date);
-            if (result) {
-                jsonResponse = result;
-            } else {
-                jsonResponse = { error: "Invalid date format" };
-            }
+            jsonResponse = result ? result : { error: "Invalid date format" };
         } else {
             jsonResponse = { error: "Missing 'data' parameter" };
         }
 
-        // Retorna JSON puro no response
-        document.body.innerHTML = `<pre>${JSON.stringify(jsonResponse, null, 4)}</pre>`;
+        // Simula um retorno JSON real
+        document.body.innerHTML = "";
+        document.write("<pre>" + JSON.stringify(jsonResponse, null, 4) + "</pre>");
     </script>
 </body>
 </html>
