@@ -36,8 +36,8 @@
         if (date) {
             var result = convertToTimestamp(date);
             jsonResponse = {
-                "timestamp": result.fullSeconds,
-                "decimal": result.decimalPart
+                "timestamp": `"${result.fullSeconds}"`, // Força o timestamp a ser tratado como string
+                "decimal": `"${result.decimalPart}"`   // Força o decimal a ser tratado como string
             };
         } else {
             jsonResponse = {
