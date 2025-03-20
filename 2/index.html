@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Timestamp to ISO 8601</title>
-</head>
-<body>
     <script>
         // Função para pegar o parâmetro "data" da URL
         function getQueryParam(name) {
@@ -15,7 +13,7 @@
 
         // Função para converter um timestamp para ISO 8601
         function convertToISO(timestamp) {
-            var timestampNumber = parseFloat(timestamp); // Converte para número (aceita inteiros e decimais)
+            var timestampNumber = parseFloat(timestamp); // Converte para número
             var dateObj = new Date(timestampNumber * 1000); // Multiplica por 1000 para milissegundos
 
             var year = dateObj.getUTCFullYear();
@@ -31,17 +29,27 @@
             return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${decimalPart}Z`;
         }
 
-        // Recebe o timestamp da URL e converte
-        var timestamp = getQueryParam('data');
-        if (timestamp) {
-            var isoDate = convertToISO(timestamp);
-            var jsonResponse = {
-                "iso8601": isoDate
-            };
-            document.body.innerHTML = JSON.stringify(jsonResponse);
-        } else {
-            document.body.innerHTML = JSON.stringify({"error": "No 'data' parameter in URL"});
+        // Função principal para exibir JSON puro na página
+        function showJSON() {
+            var timestamp = getQueryParam('data');
+            var jsonResponse;
+
+            if (timestamp) {
+                jsonResponse = {
+                    "iso8601": convertToISO(timestamp)
+                };
+            } else {
+                jsonResponse = { "error": "No 'data' parameter in URL" };
+            }
+
+            // Define o tipo de documento como JSON
+            document.write(JSON.stringify(jsonResponse));
         }
+
+        // Executa a função ao carregar a página
+        showJSON();
     </script>
+</head>
+<body>
 </body>
 </html>
