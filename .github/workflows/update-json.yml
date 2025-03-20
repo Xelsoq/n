@@ -2,7 +2,7 @@ name: Update Timestamp JSON
 on:
   workflow_dispatch:  # Permite rodar manualmente no GitHub
   schedule:
-    - cron: "*/5 * * * *"  # Atualiza a cada 5 minutos
+    - cron: "*/1 * * * *"  # Atualiza a cada 5 minutos
 
 jobs:
   update-json:
