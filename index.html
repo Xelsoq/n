@@ -4,49 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Timestamp API</title>
-    <style>
-        body {
-            font-family: monospace;
-            white-space: pre;
-            margin: 20px;
-        }
-    </style>
 </head>
 <body>
     <script>
-        // Função para pegar o parâmetro "data" da URL
+        // Função para obter parâmetros da URL
         function getQueryParam(name) {
-            var urlParams = new URLSearchParams(window.location.search);
+            const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
         }
 
-        // Função para converter a data ISO 8601 para timestamp
+        // Função para converter data ISO 8601 para timestamp
         function convertToTimestamp(date) {
-            var dateObj = new Date(date);
-            var totalSeconds = dateObj.getTime() / 1000; // Timestamp completo com decimal
-            var fullSeconds = Math.floor(totalSeconds); // Parte inteira dos segundos
-            var decimalPart = (totalSeconds - fullSeconds).toFixed(1).substring(1); // Remove o "0" antes do ponto
-            return { fullSeconds, decimalPart };
+            const dateObj = new Date(date);
+            if (isNaN(dateObj.getTime())) {
+                return null; // Retorna nulo se a data for inválida
+            }
+            const totalSeconds = dateObj.getTime() / 1000;
+            return {
+                timestamp: Math.floor(totalSeconds), 
+                decimal: (totalSeconds % 1).toFixed(1).substring(1) // Parte decimal formatada
+            };
         }
 
-        // Recebe a data da URL e converte
-        var date = getQueryParam('data');
-        var jsonResponse;
+        // Obtém a data da URL e gera o JSON
+        const date = getQueryParam('data');
+        let jsonResponse;
 
         if (date) {
-            var result = convertToTimestamp(date);
-            jsonResponse = {
-                "timestamp": result.fullSeconds.toString(),  // Garantindo que seja string
-                "decimal": result.decimalPart
-            };
+            const result = convertToTimestamp(date);
+            if (result) {
+                jsonResponse = result;
+            } else {
+                jsonResponse = { error: "Invalid date format" };
+            }
         } else {
-            jsonResponse = {
-                "error": "No 'data' parameter in URL"
-            };
+            jsonResponse = { error: "Missing 'data' parameter" };
         }
 
-        // Exibe o JSON de forma organizada
-        document.body.textContent = JSON.stringify(jsonResponse, null, 4);
+        // Retorna JSON puro no response
+        document.body.innerHTML = `<pre>${JSON.stringify(jsonResponse, null, 4)}</pre>`;
     </script>
 </body>
 </html>
