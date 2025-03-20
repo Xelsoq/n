@@ -7,19 +7,16 @@
 </head>
 <body>
     <script>
-        // Função para pegar o parâmetro "data" da URL
         function getQueryParam(name) {
             var urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
         }
 
-        // Função para converter a data ISO 8601 para timestamp
         function convertToTimestamp(date) {
             var dateObj = new Date(date);
-            return dateObj.getTime() / 1000; // Em segundos
+            return Math.floor(dateObj.getTime() / 1000); // Arredonda para número inteiro
         }
 
-        // Recebe a data da URL e converte
         var date = getQueryParam('data');
         if (date) {
             var timestamp = convertToTimestamp(date);
