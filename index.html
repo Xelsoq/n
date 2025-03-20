@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timestamp API</title>
+</head>
+<body>
+    <script>
+        // Função para pegar o parâmetro "data" da URL
+        function getQueryParam(name) {
+            var urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Função para converter a data ISO 8601 para timestamp
+        function convertToTimestamp(date) {
+            var dateObj = new Date(date);
+            return dateObj.getTime() / 1000; // Em segundos
+        }
+
+        // Recebe a data da URL e converte
+        var date = getQueryParam('data');
+        if (date) {
+            var timestamp = convertToTimestamp(date);
+            var jsonResponse = {
+                "timestamp": timestamp
+            };
+            document.body.innerHTML = JSON.stringify(jsonResponse);
+        } else {
+            document.body.innerHTML = JSON.stringify({"error": "No 'data' parameter in URL"});
+        }
+    </script>
+</body>
+</html>
