@@ -15,7 +15,7 @@
         function convertToTimestamp(date) {
             const dateObj = new Date(date);
             if (isNaN(dateObj.getTime())) {
-                return null;
+                return { error: "Invalid date format" };
             }
             const totalSeconds = dateObj.getTime() / 1000;
             return {
@@ -28,15 +28,14 @@
         let jsonResponse;
 
         if (date) {
-            const result = convertToTimestamp(date);
-            jsonResponse = result ? result : { error: "Invalid date format" };
+            jsonResponse = convertToTimestamp(date);
         } else {
-            jsonResponse = { error: "Missing 'data' parameter" };
+            jsonResponse = { error: "No 'data' parameter in URL" };
         }
 
-        // Simula um retorno JSON real
-        document.body.innerHTML = "";
-        document.write("<pre>" + JSON.stringify(jsonResponse, null, 4) + "</pre>");
+        // Modifica os headers para garantir que o navegador trate como JSON
+        document.body.innerText = JSON.stringify(jsonResponse, null, 4);
+        document.head.innerHTML += '<meta http-equiv="Content-Type" content="application/json">';
     </script>
 </body>
 </html>
