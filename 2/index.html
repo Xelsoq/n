@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timestamp to ISO 8601</title>
+</head>
+<body>
+    <script>
+        // Função para pegar o parâmetro "data" da URL
+        function getQueryParam(name) {
+            var urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Função para converter um timestamp para ISO 8601
+        function convertToISO(timestamp) {
+            var timestampNumber = parseFloat(timestamp); // Converte para número (aceita inteiros e decimais)
+            var dateObj = new Date(timestampNumber * 1000); // Multiplica por 1000 para milissegundos
+
+            var year = dateObj.getUTCFullYear();
+            var month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+            var day = String(dateObj.getUTCDate()).padStart(2, '0');
+            var hours = String(dateObj.getUTCHours()).padStart(2, '0');
+            var minutes = String(dateObj.getUTCMinutes()).padStart(2, '0');
+            var seconds = String(dateObj.getUTCSeconds()).padStart(2, '0');
+
+            // Verifica se há parte decimal (milissegundos)
+            var decimalPart = timestamp.includes('.') ? '.' + timestamp.split('.')[1] : '';
+
+            return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${decimalPart}Z`;
+        }
+
+        // Recebe o timestamp da URL e converte
+        var timestamp = getQueryParam('data');
+        if (timestamp) {
+            var isoDate = convertToISO(timestamp);
+            var jsonResponse = {
+                "iso8601": isoDate
+            };
+            document.body.innerHTML = JSON.stringify(jsonResponse);
+        } else {
+            document.body.innerHTML = JSON.stringify({"error": "No 'data' parameter in URL"});
+        }
+    </script>
+</body>
+</html>
