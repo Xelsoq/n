@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Timestamp API</title>
+    <style>
+        body {
+            font-family: monospace;
+            white-space: pre;
+            margin: 20px;
+        }
+    </style>
 </head>
 <body>
     <script>
@@ -24,16 +31,22 @@
 
         // Recebe a data da URL e converte
         var date = getQueryParam('data');
+        var jsonResponse;
+
         if (date) {
             var result = convertToTimestamp(date);
-            var jsonResponse = {
+            jsonResponse = {
                 "timestamp": result.fullSeconds,
                 "decimal": result.decimalPart
             };
-            document.body.innerHTML = JSON.stringify(jsonResponse);
         } else {
-            document.body.innerHTML = JSON.stringify({"error": "No 'data' parameter in URL"});
+            jsonResponse = {
+                "error": "No 'data' parameter in URL"
+            };
         }
+
+        // Exibe o JSON de forma organizada
+        document.body.textContent = JSON.stringify(jsonResponse, null, 4);
     </script>
 </body>
 </html>
