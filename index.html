@@ -7,21 +7,28 @@
 </head>
 <body>
     <script>
+        // Função para pegar o parâmetro "data" da URL
         function getQueryParam(name) {
             var urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
         }
 
+        // Função para converter a data ISO 8601 para timestamp
         function convertToTimestamp(date) {
             var dateObj = new Date(date);
-            return Math.floor(dateObj.getTime() / 1000); // Arredonda para número inteiro
+            var totalSeconds = dateObj.getTime() / 1000; // Timestamp com fração de segundos
+            var fullSeconds = Math.floor(totalSeconds); // Apenas segundos inteiros
+            var milliseconds = Math.round((totalSeconds - fullSeconds) * 1000); // Milissegundos separados
+            return { fullSeconds, milliseconds };
         }
 
+        // Recebe a data da URL e converte
         var date = getQueryParam('data');
         if (date) {
-            var timestamp = convertToTimestamp(date);
+            var result = convertToTimestamp(date);
             var jsonResponse = {
-                "timestamp": timestamp
+                "timestamp": result.fullSeconds,
+                "milliseconds": result.milliseconds
             };
             document.body.innerHTML = JSON.stringify(jsonResponse);
         } else {
