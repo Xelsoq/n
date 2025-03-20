@@ -18,7 +18,7 @@
             var dateObj = new Date(date);
             var totalSeconds = dateObj.getTime() / 1000; // Timestamp completo com decimal
             var fullSeconds = Math.floor(totalSeconds); // Parte inteira dos segundos
-            var decimalPart = (totalSeconds - fullSeconds).toFixed(1); // Parte decimal no formato ".x"
+            var decimalPart = (totalSeconds - fullSeconds).toFixed(1).substring(1); // Remove o "0" antes do ponto
             return { fullSeconds, decimalPart };
         }
 
