@@ -7,11 +7,13 @@
 </head>
 <body>
     <script>
+        // Função para pegar o parâmetro "data" da URL
         function getQueryParam(name) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
         }
 
+        // Função para converter a data ISO 8601 para timestamp
         function convertToTimestamp(date) {
             const dateObj = new Date(date);
             if (isNaN(dateObj.getTime())) {
@@ -33,8 +35,12 @@
             jsonResponse = { error: "No 'data' parameter in URL" };
         }
 
-        // Modifica os headers para garantir que o navegador trate como JSON
-        document.body.innerText = JSON.stringify(jsonResponse, null, 4);
+        // Aqui vamos garantir que o conteúdo de resposta seja realmente JSON
+        if (typeof jsonResponse === "object") {
+            document.body.innerText = JSON.stringify(jsonResponse, null, 4);
+        } else {
+            document.body.innerText = JSON.stringify({ error: "An unexpected error occurred" }, null, 4);
+        }
         document.head.innerHTML += '<meta http-equiv="Content-Type" content="application/json">';
     </script>
 </body>
