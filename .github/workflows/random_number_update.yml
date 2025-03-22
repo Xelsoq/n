@@ -13,40 +13,58 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Gerar número aleatório e atualizar o JSON
+      - name: Gerar números aleatórios e atualizar os JSONs
         run: |
-          # Gera um número aleatório entre 5 e 50
-          RANDOM_NUMBER=$((RANDOM % 46 + 5))
-
-          # Gera o timestamp atual
-          TIMESTAMP=$(date +%s)
+          # Lista de arquivos JSON e suas configurações
+          declare -A CONFIGS
+          CONFIGS["economy/stable.json"]="50 2"        # Máx 50, 20% loss
+          CONFIGS["economy/intermediary.json"]="150 4" # Máx 150, 45% loss
+          CONFIGS["economy/tertiary.json"]="500 6"    # Máx 500, 65% loss
           
-          # Cria ou atualiza o arquivo JSON
-          FILE="data.json"
+          for FILE in "${!CONFIGS[@]}"; do
+            # Define limites e chance de "loss"
+            MAX_NUM=$(echo "${CONFIGS[$FILE]}" | cut -d' ' -f1)
+            LOSS_CHANCE=$(echo "${CONFIGS[$FILE]}" | cut -d' ' -f2)
 
-          # Verifica se o arquivo já existe
-          if [ ! -f $FILE ]; then
-            echo '{"current": {}, "old": []}' > $FILE
-          fi
+            # Gera número aleatório dentro do limite
+            RANDOM_NUMBER=$((RANDOM % (MAX_NUM + 1)))
 
-          # Lê o conteúdo atual do JSON
-          CURRENT_NUMBER=$(jq '.current.number' $FILE)
+            # Gera o timestamp atual
+            TIMESTAMP=$(date +%s)
 
-          # Se já existir um número atual, move ele para "old"
-          if [ "$CURRENT_NUMBER" != "null" ]; then
-            # Adiciona o número atual à lista "old" com timestamp
-            jq ".old += [{\"number\": $CURRENT_NUMBER, \"timestamp\": $TIMESTAMP}]" $FILE > temp.json && mv temp.json $FILE
-          fi
+            # Define o tipo (X% de chance de "loss")
+            if [ $((RANDOM % 10)) -lt $LOSS_CHANCE ]; then
+              TYPE="loss"
+            else
+              TYPE="gain"
+            fi
+            
+            # Verifica se o arquivo já existe
+            if [ ! -f $FILE ]; then
+              echo '{"current": {}, "old": []}' > $FILE
+            fi
 
-          # Atualiza o "current" com o novo número e timestamp
-          jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP}" $FILE > temp.json && mv temp.json $FILE
+            # Lê os dados atuais do JSON
+            CURRENT_NUMBER=$(jq '.current.number' $FILE)
+            CURRENT_TIMESTAMP=$(jq '.current.timestamp' $FILE)
+            CURRENT_TYPE=$(jq -r '.current.type' $FILE)
 
-          # Imprime o conteúdo atualizado do JSON para depuração
-          cat $FILE
+            # Se já existir um número atual, move ele para "old"
+            if [ "$CURRENT_NUMBER" != "null" ]; then
+              jq ".old += [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\"}]" $FILE > temp.json && mv temp.json $FILE
+            fi
 
-      - name: Commit e push do arquivo atualizado
+            # Atualiza o "current" com o novo número, timestamp e tipo
+            jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP, \"type\": \"$TYPE\"}" $FILE > temp.json && mv temp.json $FILE
+
+            # Exibe o conteúdo atualizado para debug
+            echo "Conteúdo atualizado de $FILE:"
+            cat $FILE
+          done
+
+      - name: Commit e push dos arquivos atualizados
         uses: EndBug/add-and-commit@v7
         with:
           author_name: 'GitHub Actions'
           author_email: 'actions@github.com'
-          message: 'Adicionando novo número aleatório ao JSON com timestamp'
+          message: 'Atualizando stable.json, intermediary.json e tertiary.json na pasta economy'
