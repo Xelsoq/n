@@ -1,8 +1,9 @@
-name: random_number_update
+name: Random Number Update
+
 on:
-  workflow_dispatch:  # Permite rodar manualmente no GitHub
   schedule:
-    - cron: "*/1 * * * *"  # Atualiza a cada 1 minutos
+    - cron: '*/1 * * * *'  # Executa a cada 1 minuto
+  workflow_dispatch:  # Permite execução manual
 
 jobs:
   update-json:
@@ -27,6 +28,9 @@ jobs:
 
           # Adiciona o novo número ao JSON
           jq ". += [$RANDOM_NUMBER]" $FILE > temp.json && mv temp.json $FILE
+
+          # Imprime o conteúdo atualizado do JSON para depuração
+          cat $FILE
 
       - name: Commit e push do arquivo atualizado
         uses: EndBug/add-and-commit@v7
