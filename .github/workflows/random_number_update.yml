@@ -1,9 +1,8 @@
-name: Random Number Update
-
+name: Update Timestamp JSON
 on:
+  workflow_dispatch:  # Permite rodar manualmente no GitHub
   schedule:
-    - cron: '*/1 * * * *'  # Executa a cada 1 minuto (pode ser ajustado para o intervalo desejado)
-  workflow_dispatch:  # Permite que a action seja executada manualmente
+    - cron: "*/1 * * * *"  # Atualiza a cada 1 minutos
 
 jobs:
   update-json:
