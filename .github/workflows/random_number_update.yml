@@ -1,0 +1,37 @@
+name: Random Number Update
+
+on:
+  schedule:
+    - cron: '*/1 * * * *'  # Executa a cada 1 minuto (pode ser ajustado para o intervalo desejado)
+  workflow_dispatch:  # Permite que a action seja executada manualmente
+
+jobs:
+  update-json:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Gerar número aleatório e atualizar o JSON
+        run: |
+          # Gera um número aleatório entre 5 e 50
+          RANDOM_NUMBER=$((RANDOM % 46 + 5))
+          
+          # Cria ou atualiza o arquivo JSON
+          FILE="data.json"
+          
+          # Verifica se o arquivo já existe
+          if [ ! -f $FILE ]; then
+            echo "[]" > $FILE
+          fi
+
+          # Adiciona o novo número ao JSON
+          jq ". += [$RANDOM_NUMBER]" $FILE > temp.json && mv temp.json $FILE
+
+      - name: Commit e push do arquivo atualizado
+        uses: EndBug/add-and-commit@v7
+        with:
+          author_name: 'GitHub Actions'
+          author_email: 'actions@github.com'
+          message: 'Adicionando número aleatório ao JSON'
