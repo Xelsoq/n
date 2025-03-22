@@ -55,6 +55,7 @@ jobs:
 
             # Se já existir um número atual, move ele para "old"
             if [ "$CURRENT_NUMBER" != "null" ]; then
+              # Aqui estamos inserindo o novo número sempre no final da lista "old"
               jq ".old += [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\"}]" $FILE > temp.json && mv temp.json $FILE
             fi
 
