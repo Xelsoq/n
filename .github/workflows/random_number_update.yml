@@ -17,17 +17,29 @@ jobs:
         run: |
           # Gera um número aleatório entre 5 e 50
           RANDOM_NUMBER=$((RANDOM % 46 + 5))
+
+          # Gera o timestamp atual
+          TIMESTAMP=$(date +%s)
           
           # Cria ou atualiza o arquivo JSON
           FILE="data.json"
-          
+
           # Verifica se o arquivo já existe
           if [ ! -f $FILE ]; then
-            echo "[]" > $FILE
+            echo '{"current": {}, "old": []}' > $FILE
           fi
 
-          # Adiciona o novo número ao JSON
-          jq ". += [$RANDOM_NUMBER]" $FILE > temp.json && mv temp.json $FILE
+          # Lê o conteúdo atual do JSON
+          CURRENT_NUMBER=$(jq '.current.number' $FILE)
+
+          # Se já existir um número atual, move ele para "old"
+          if [ "$CURRENT_NUMBER" != "null" ]; then
+            # Adiciona o número atual à lista "old" com timestamp
+            jq ".old += [{\"number\": $CURRENT_NUMBER, \"timestamp\": $TIMESTAMP}]" $FILE > temp.json && mv temp.json $FILE
+          fi
+
+          # Atualiza o "current" com o novo número e timestamp
+          jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP}" $FILE > temp.json && mv temp.json $FILE
 
           # Imprime o conteúdo atualizado do JSON para depuração
           cat $FILE
@@ -37,4 +49,4 @@ jobs:
         with:
           author_name: 'GitHub Actions'
           author_email: 'actions@github.com'
-          message: 'Adicionando número aleatório ao JSON'
+          message: 'Adicionando novo número aleatório ao JSON com timestamp'
