@@ -1,4 +1,4 @@
-name: BloxCoin value
+name: Random Number Update
 
 on:
   schedule:
@@ -51,10 +51,9 @@ jobs:
             fi
             
             # Define a variante (volátil ou normal)
+            VARIANT="normal"  # Valor padrão é "normal"
             if [ $((RANDOM % 10)) -lt 3 ]; then
               VARIANT="volatile"  # 30% chance de ser volátil
-            else
-              VARIANT="normal"    # 70% chance de ser normal
             fi
 
             # Se o arquivo não existir, cria um JSON inicial
