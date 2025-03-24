@@ -21,9 +21,9 @@ jobs:
         run: |
           # Lista de arquivos JSON, limites, chances de atualização e limites voláteis
           declare -A CONFIGS
-          CONFIGS["economy/stable.json"]="50 2 3"        # Máx 50, 20% loss, 30% chance de atualizar
-          CONFIGS["economy/intermediary.json"]="150 4 5" # Máx 150, 45% loss, 50% chance de atualizar
-          CONFIGS["economy/unstable.json"]="500 6 7"     # Máx 500, 65% loss, 70% chance de atualizar
+          CONFIGS["economy/stable.json"]="50 2 30"        # Máx 50, 20% loss, 30% chance de atualizar
+          CONFIGS["economy/intermediary.json"]="150 4 50" # Máx 150, 45% loss, 50% chance de atualizar
+          CONFIGS["economy/unstable.json"]="500 6 70"     # Máx 500, 65% loss, 70% chance de atualizar
 
           # Volatilidade e mudança de limites
           VOLATILITY_LIMIT=5  # % de variação no limite máximo a cada execução
@@ -75,12 +75,12 @@ jobs:
             fi
 
             # Lê os dados atuais do JSON
-            CURRENT_NUMBER=$(jq '.current.number' $FILE)
-            CURRENT_TIMESTAMP=$(jq '.current.timestamp' $FILE)
-            CURRENT_TYPE=$(jq -r '.current.type' $FILE)
+            CURRENT_NUMBER=$(jq '.current.number // 0' $FILE)
+            CURRENT_TIMESTAMP=$(jq '.current.timestamp // 0' $FILE)
+            CURRENT_TYPE=$(jq -r '.current.type // ""' $FILE)
 
             # Move o current para "old" se já existir (adicionando no topo)
-            if [ "$CURRENT_NUMBER" != "null" ]; then
+            if [ "$CURRENT_NUMBER" != "0" ]; then
               jq ".old = [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\"}] + .old" $FILE > temp.json && mv temp.json $FILE
             fi
 
