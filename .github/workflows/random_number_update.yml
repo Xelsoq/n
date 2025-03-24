@@ -2,7 +2,7 @@ name: Random Number Update
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Executa a cada 1 minuto
+    - cron: '*/1 * * * *'  # Executa a cada 5 minuto
   workflow_dispatch:  # Permite execução manual
 
 jobs:
@@ -67,6 +67,7 @@ jobs:
             CURRENT_TIMESTAMP=$(jq '.current.timestamp' $FILE)
             CURRENT_TYPE=$(jq -r '.current.type' $FILE)
             CURRENT_VARIANT=$(jq -r '.current.variant' $FILE)
+            CURRENT_CALCULATION=$(jq '.total.calculation' $FILE)
 
             # Verifica se o current já existe, para movê-lo para "old"
             if [ "$CURRENT_NUMBER" != "null" ]; then
@@ -86,23 +87,17 @@ jobs:
               LOSS_COUNT=$(jq '.total.loss_count' $FILE)
               LOSS_COUNT=$((LOSS_COUNT + 1))
               GAIN_COUNT=$(jq '.total.gain_count' $FILE)
+              CURRENT_CALCULATION=$((CURRENT_CALCULATION - RANDOM_NUMBER))  # Subtrai para perdas
             else
               TOTAL_GAIN=$((TOTAL_GAIN + RANDOM_NUMBER))
               GAIN_COUNT=$(jq '.total.gain_count' $FILE)
               GAIN_COUNT=$((GAIN_COUNT + 1))
               LOSS_COUNT=$(jq '.total.loss_count' $FILE)
-            fi
-
-            # Recalcula o "calculation" que é a soma total de gains e losses
-            CALCULATION=$((TOTAL_GAIN - TOTAL_LOSS))
-
-            # Se o cálculo for negativo, ajusta para 0
-            if [ $CALCULATION -lt 0 ]; then
-              CALCULATION=0
+              CURRENT_CALCULATION=$((CURRENT_CALCULATION + RANDOM_NUMBER))  # Adiciona para ganhos
             fi
 
             # Atualiza o "total" abaixo do "current"
-            jq ".total = {\"loss\": $TOTAL_LOSS, \"gain\": $TOTAL_GAIN, \"loss_count\": $LOSS_COUNT, \"gain_count\": $GAIN_COUNT, \"calculation\": $CALCULATION}" $FILE > temp.json && mv temp.json $FILE
+            jq ".total = {\"loss\": $TOTAL_LOSS, \"gain\": $TOTAL_GAIN, \"loss_count\": $LOSS_COUNT, \"gain_count\": $GAIN_COUNT, \"calculation\": $CURRENT_CALCULATION}" $FILE > temp.json && mv temp.json $FILE
 
             # Exibe o conteúdo atualizado para debug
             echo "Conteúdo atualizado de $FILE:"
