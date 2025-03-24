@@ -64,14 +64,18 @@ jobs:
               jq '.old = []' $FILE > temp.json && mv temp.json $FILE
             fi
 
-            # Debug para garantir que calculation e variant estão presentes
-            echo "CURRENT_VARIANT: $CURRENT_VARIANT"
-            echo "CURRENT_CALCULATION: $CURRENT_CALCULATION"
-
-            if [ "$CURRENT_NUMBER" != "0" ]; then
-              jq ".old = .old + [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\", \"variant\": \"$CURRENT_VARIANT\", \"calculation\": $CURRENT_CALCULATION}]" $FILE > temp.json && mv temp.json $FILE
+            # Garantir que o variant e o calculation estejam presentes, se não, atribuir valores padrão
+            if [ -z "$CURRENT_VARIANT" ]; then
+              CURRENT_VARIANT="normal"
+            fi
+            if [ -z "$CURRENT_CALCULATION" ]; then
+              CURRENT_CALCULATION=0
             fi
 
+            # Adicionar o novo item ao old
+            jq ".old = .old + [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\", \"variant\": \"$CURRENT_VARIANT\", \"calculation\": $CURRENT_CALCULATION}]" $FILE > temp.json && mv temp.json $FILE
+
+            # Atualizar a seção current
             jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP, \"type\": \"$TYPE\", \"variant\": \"$VARIANT\"}" $FILE > temp.json && mv temp.json $FILE
 
             TOTAL_LOSS=$(jq '[.old[] | select(.type=="loss") | .number] | add // 0' $FILE)
