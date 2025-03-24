@@ -19,31 +19,26 @@ jobs:
 
       - name: Gerar números aleatórios e atualizar os JSONs
         run: |
-          # Lista de arquivos JSON, limites, chances de atualização e volatilidade
+          # Lista de arquivos JSON, limites e chances de atualização
           declare -A CONFIGS
-          CONFIGS["economy/stable.json"]="50 2 3 0.05"        # Máx 50, 20% loss, 30% chance de atualizar, volatilidade 5%
-          CONFIGS["economy/intermediary.json"]="150 4 5 0.1"   # Máx 150, 45% loss, 50% chance de atualizar, volatilidade 10%
-          CONFIGS["economy/unstable.json"]="500 6 7 0.15"      # Máx 500, 65% loss, 70% chance de atualizar, volatilidade 15%
-
+          CONFIGS["economy/stable.json"]="50 2 3"        # Máx 50, 20% loss, 30% chance de atualizar
+          CONFIGS["economy/intermediary.json"]="150 4 5" # Máx 150, 45% loss, 50% chance de atualizar
+          CONFIGS["economy/unstable.json"]="500 6 7"     # Máx 500, 65% loss, 70% chance de atualizar
+          
           for FILE in "${!CONFIGS[@]}"; do
-            # Define limites, chance de "loss", chance de atualização e volatilidade
+            # Define limites e chance de "loss" e "atualização"
             MAX_NUM=$(echo "${CONFIGS[$FILE]}" | cut -d' ' -f1)
             LOSS_CHANCE=$(echo "${CONFIGS[$FILE]}" | cut -d' ' -f2)
             UPDATE_CHANCE=$(echo "${CONFIGS[$FILE]}" | cut -d' ' -f3)
-            VOLATILITY=$(echo "${CONFIGS[$FILE]}" | cut -d' ' -f4)
 
-            # Verifica se o arquivo será atualizado nesta execução (com volatilidade)
+            # Verifica se o arquivo será atualizado nesta execução
             if [ $((RANDOM % 10)) -ge $UPDATE_CHANCE ]; then
               echo "Mercado estável. Nenhuma atualização para $FILE"
               continue
             fi
 
-            # Varia o limite de valor dentro da faixa da volatilidade
-            VARIATION=$((RANDOM % (MAX_NUM * VOLATILITY) + 1))
-            NEW_MAX=$((MAX_NUM + VARIATION))
-
-            # Gera número aleatório dentro do novo limite
-            RANDOM_NUMBER=$((RANDOM % (NEW_MAX + 1)))
+            # Gera número aleatório dentro do limite
+            RANDOM_NUMBER=$((RANDOM % (MAX_NUM + 1)))
 
             # Gera o timestamp atual
             TIMESTAMP=$(date +%s)
@@ -54,7 +49,7 @@ jobs:
             else
               TYPE="gain"
             fi
-
+            
             # Se o arquivo não existir, cria um JSON inicial
             if [ ! -f $FILE ]; then
               echo '{"current": {}, "total": {"loss": 0, "gain": 0, "loss_count": 0, "gain_count": 0}, "old": []}' > $FILE
@@ -90,11 +85,8 @@ jobs:
               LOSS_COUNT=$(jq '.total.loss_count' $FILE)
             fi
 
-            # Ajuste para manter a igualdade entre perda e ganho
-            EQUAL_TOTAL=$(($TOTAL_GAIN > $TOTAL_LOSS ? $TOTAL_GAIN : $TOTAL_LOSS))
-
             # Atualiza o "total" abaixo do "current"
-            jq ".total = {\"loss\": $EQUAL_TOTAL, \"gain\": $EQUAL_TOTAL, \"loss_count\": $LOSS_COUNT, \"gain_count\": $GAIN_COUNT}" $FILE > temp.json && mv temp.json $FILE
+            jq ".total = {\"loss\": $TOTAL_LOSS, \"gain\": $TOTAL_GAIN, \"loss_count\": $LOSS_COUNT, \"gain_count\": $GAIN_COUNT}" $FILE > temp.json && mv temp.json $FILE
 
             # Exibe o conteúdo atualizado para debug
             echo "Conteúdo atualizado de $FILE:"
