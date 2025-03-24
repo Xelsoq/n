@@ -1,4 +1,4 @@
-name: Random Number Update
+name: BloxCoin Value
 
 on:
   schedule:
@@ -23,7 +23,7 @@ jobs:
           declare -A CONFIGS
           CONFIGS["economy/stable.json"]="50 2"        # Máx 50, 20% loss
           CONFIGS["economy/intermediary.json"]="150 4" # Máx 150, 45% loss
-          CONFIGS["economy/tertiary.json"]="500 6"    # Máx 500, 65% loss
+          CONFIGS["economy/unstable.json"]="500 6"     # Máx 500, 65% loss
           
           for FILE in "${!CONFIGS[@]}"; do
             # Define limites e chance de "loss"
@@ -43,9 +43,9 @@ jobs:
               TYPE="gain"
             fi
             
-            # Verifica se o arquivo já existe
+            # Se o arquivo não existir, cria um JSON inicial
             if [ ! -f $FILE ]; then
-              echo '{"current": {}, "old": []}' > $FILE
+              echo '{"current": {}, "old": [], "total": {"loss": 0, "gain": 0}}' > $FILE
             fi
 
             # Lê os dados atuais do JSON
@@ -53,14 +53,27 @@ jobs:
             CURRENT_TIMESTAMP=$(jq '.current.timestamp' $FILE)
             CURRENT_TYPE=$(jq -r '.current.type' $FILE)
 
-            # Se já existir um número atual, move ele para "old"
+            # Move o current para "old" se já existir (adicionando no topo)
             if [ "$CURRENT_NUMBER" != "null" ]; then
-              # Aqui estamos inserindo o novo número sempre no final da lista "old"
-              jq ".old += [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\"}]" $FILE > temp.json && mv temp.json $FILE
+              jq ".old = [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\"}] + .old" $FILE > temp.json && mv temp.json $FILE
             fi
 
-            # Atualiza o "current" com o novo número, timestamp e tipo
+            # Atualiza o "current" com o novo número
             jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP, \"type\": \"$TYPE\"}" $FILE > temp.json && mv temp.json $FILE
+
+            # Recalcula o total de loss e gain
+            TOTAL_LOSS=$(jq '[.old[] | select(.type=="loss")] | length' $FILE)
+            TOTAL_GAIN=$(jq '[.old[] | select(.type=="gain")] | length' $FILE)
+
+            # Adiciona o current no total
+            if [ "$TYPE" == "loss" ]; then
+              TOTAL_LOSS=$((TOTAL_LOSS + 1))
+            else
+              TOTAL_GAIN=$((TOTAL_GAIN + 1))
+            fi
+
+            # Atualiza o "total"
+            jq ".total = {\"loss\": $TOTAL_LOSS, \"gain\": $TOTAL_GAIN}" $FILE > temp.json && mv temp.json $FILE
 
             # Exibe o conteúdo atualizado para debug
             echo "Conteúdo atualizado de $FILE:"
@@ -72,4 +85,4 @@ jobs:
         with:
           author_name: 'GitHub Actions'
           author_email: 'actions@github.com'
-          message: 'Atualizando stable.json, intermediary.json e tertiary.json na pasta economy'
+          message: 'Atualizando stable.json, intermediary.json e unstable.json na pasta economy'
