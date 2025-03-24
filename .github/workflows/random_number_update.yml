@@ -50,6 +50,13 @@ jobs:
               TYPE="gain"
             fi
             
+            # Define a variante (volátil ou normal)
+            if [ $((RANDOM % 10)) -lt 3 ]; then
+              VARIANT="volatile"  # 30% chance de ser volátil
+            else
+              VARIANT="normal"    # 70% chance de ser normal
+            fi
+
             # Se o arquivo não existir, cria um JSON inicial
             if [ ! -f $FILE ]; then
               echo '{"current": {}, "total": {"loss": 0, "gain": 0, "loss_count": 0, "gain_count": 0}, "old": []}' > $FILE
@@ -59,14 +66,15 @@ jobs:
             CURRENT_NUMBER=$(jq '.current.number' $FILE)
             CURRENT_TIMESTAMP=$(jq '.current.timestamp' $FILE)
             CURRENT_TYPE=$(jq -r '.current.type' $FILE)
+            CURRENT_VARIANT=$(jq -r '.current.variant' $FILE)
 
             # Move o current para "old" se já existir (adicionando no topo)
             if [ "$CURRENT_NUMBER" != "null" ]; then
-              jq ".old = [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\"}] + .old" $FILE > temp.json && mv temp.json $FILE
+              jq ".old = [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\", \"variant\": \"$CURRENT_VARIANT\"}] + .old" $FILE > temp.json && mv temp.json $FILE
             fi
 
             # Atualiza o "current" com o novo número
-            jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP, \"type\": \"$TYPE\"}" $FILE > temp.json && mv temp.json $FILE
+            jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP, \"type\": \"$TYPE\", \"variant\": \"$VARIANT\"}" $FILE > temp.json && mv temp.json $FILE
 
             # Recalcula os totais de loss e gain somando os números
             TOTAL_LOSS=$(jq '[.old[] | select(.type=="loss") | .number] | add // 0' $FILE)
