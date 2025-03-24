@@ -65,7 +65,7 @@ jobs:
             fi
 
             if [ "$CURRENT_NUMBER" != "0" ]; then
-              jq ".old = [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\", \"variant\": \"$CURRENT_VARIANT\", \"calculation\": $CURRENT_CALCULATION}] + .old" $FILE > temp.json && mv temp.json $FILE
+              jq ".old = .old + [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\", \"variant\": \"$CURRENT_VARIANT\", \"calculation\": $CURRENT_CALCULATION}]" $FILE > temp.json && mv temp.json $FILE
             fi
 
             jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP, \"type\": \"$TYPE\", \"variant\": \"$VARIANT\"}" $FILE > temp.json && mv temp.json $FILE
