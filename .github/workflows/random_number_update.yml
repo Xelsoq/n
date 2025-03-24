@@ -62,14 +62,14 @@ jobs:
             fi
 
             # Lê os dados atuais do JSON
-            CURRENT_NUMBER=$(jq '.current.number' $FILE)
-            CURRENT_TIMESTAMP=$(jq '.current.timestamp' $FILE)
-            CURRENT_TYPE=$(jq -r '.current.type' $FILE)
-            CURRENT_VARIANT=$(jq -r '.current.variant' $FILE)
-            CURRENT_CALCULATION=$(jq '.total.calculation' $FILE)
+            CURRENT_NUMBER=$(jq '.current.number // 0' $FILE)  # Garante que o valor seja 0 se não houver
+            CURRENT_TIMESTAMP=$(jq '.current.timestamp // 0' $FILE)
+            CURRENT_TYPE=$(jq -r '.current.type // "none"' $FILE)
+            CURRENT_VARIANT=$(jq -r '.current.variant // "normal"' $FILE)
+            CURRENT_CALCULATION=$(jq '.total.calculation // 0' $FILE)
 
             # Verifica se o current já existe, para movê-lo para "old"
-            if [ "$CURRENT_NUMBER" != "null" ]; then
+            if [ "$CURRENT_NUMBER" != "0" ]; then
               jq ".old = [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\", \"variant\": \"$CURRENT_VARIANT\", \"calculation\": $CURRENT_CALCULATION}] + .old" $FILE > temp.json && mv temp.json $FILE
             fi
 
