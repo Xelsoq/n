@@ -19,13 +19,13 @@ jobs:
 
       - name: Gerar números aleatórios e atualizar os JSONs
         run: |
-          # Lista de arquivos JSON, limites, chances de atualização e limites voláteis
+          # Lista de arquivos JSON, limites, chances de "loss" e de atualização
           declare -A CONFIGS
-          CONFIGS["economy/stable.json"]="50 2 30"        # Máx 50, 20% loss, 30% chance de atualizar
-          CONFIGS["economy/intermediary.json"]="150 4 50" # Máx 150, 45% loss, 50% chance de atualizar
-          CONFIGS["economy/unstable.json"]="500 6 70"     # Máx 500, 65% loss, 70% chance de atualizar
+          CONFIGS["economy/stable.json"]="50 2 30"        # Máx 50, 20% loss, 30% chance de atualização
+          CONFIGS["economy/intermediary.json"]="150 4 50" # Máx 150, 45% loss, 50% chance de atualização
+          CONFIGS["economy/unstable.json"]="500 6 70"     # Máx 500, 65% loss, 70% chance de atualização
 
-          # Volatilidade e mudança de limites
+          # Volatilidade e mudanças de limites
           VOLATILITY_LIMIT=5  # % de variação no limite máximo a cada execução
           
           for FILE in "${!CONFIGS[@]}"; do
@@ -34,14 +34,14 @@ jobs:
             LOSS_CHANCE=$(echo "${CONFIGS[$FILE]}" | cut -d' ' -f2)
             UPDATE_CHANCE=$(echo "${CONFIGS[$FILE]}" | cut -d' ' -f3)
 
-            # Ajusta a chance de atualização de forma volátil (30% + ou - 5%)
+            # Ajusta a chance de atualização de forma volátil
             VOLATILE_UPDATE_CHANCE=$((UPDATE_CHANCE + RANDOM % VOLATILITY_LIMIT - (VOLATILITY_LIMIT / 2)))
             if [ $((RANDOM % 10)) -ge $VOLATILE_UPDATE_CHANCE ]; then
               echo "Mercado estável. Nenhuma atualização para $FILE"
               continue
             fi
 
-            # Alteração no limite máximo de forma volátil (por exemplo, +/- 5%)
+            # Alteração no limite máximo de forma volátil
             VOLATILE_MAX=$((MAX_NUM * (100 + (RANDOM % (VOLATILITY_LIMIT * 2)) - VOLATILITY_LIMIT)) / 100))
             MAX_NUM=$VOLATILE_MAX
 
@@ -58,17 +58,6 @@ jobs:
               TYPE="gain"
             fi
 
-            # Evento de mercado aleatório (picos e quedas)
-            if [ $((RANDOM % 100)) -lt 10 ]; then
-              EVENT_MODIFIER=$((RANDOM % 30 + 10))  # +/- 10-40%
-              if [ "$TYPE" == "gain" ]; then
-                RANDOM_NUMBER=$((RANDOM_NUMBER + RANDOM_NUMBER * EVENT_MODIFIER / 100))
-              else
-                RANDOM_NUMBER=$((RANDOM_NUMBER - RANDOM_NUMBER * EVENT_MODIFIER / 100))
-              fi
-              echo "Evento de mercado impactou o valor do arquivo $FILE!"
-            fi
-
             # Se o arquivo não existir, cria um JSON inicial
             if [ ! -f $FILE ]; then
               echo '{"current": {}, "total": {"loss": 0, "gain": 0, "loss_count": 0, "gain_count": 0}, "old": []}' > $FILE
@@ -79,7 +68,7 @@ jobs:
             CURRENT_TIMESTAMP=$(jq '.current.timestamp // 0' $FILE)
             CURRENT_TYPE=$(jq -r '.current.type // ""' $FILE)
 
-            # Move o current para "old" se já existir (adicionando no topo)
+            # Move o current para "old" no topo, se já existir
             if [ "$CURRENT_NUMBER" != "0" ]; then
               jq ".old = [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\"}] + .old" $FILE > temp.json && mv temp.json $FILE
             fi
@@ -87,11 +76,11 @@ jobs:
             # Atualiza o "current" com o novo número
             jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP, \"type\": \"$TYPE\"}" $FILE > temp.json && mv temp.json $FILE
 
-            # Recalcula os totais de loss e gain somando os números
+            # Recalcula os totais de loss e gain somando os números em old e current
             TOTAL_LOSS=$(jq '[.old[] | select(.type=="loss") | .number] | add // 0' $FILE)
             TOTAL_GAIN=$(jq '[.old[] | select(.type=="gain") | .number] | add // 0' $FILE)
 
-            # Adiciona o current no total
+            # Soma o número atual de acordo com o tipo
             if [ "$TYPE" == "loss" ]; then
               TOTAL_LOSS=$((TOTAL_LOSS + RANDOM_NUMBER))
               LOSS_COUNT=$(jq '.total.loss_count' $FILE)
@@ -104,7 +93,7 @@ jobs:
               LOSS_COUNT=$(jq '.total.loss_count' $FILE)
             fi
 
-            # Atualiza o "total" abaixo do "current"
+            # Atualiza o "total" com a soma dos valores e a contagem de gain e loss
             jq ".total = {\"loss\": $TOTAL_LOSS, \"gain\": $TOTAL_GAIN, \"loss_count\": $LOSS_COUNT, \"gain_count\": $GAIN_COUNT}" $FILE > temp.json && mv temp.json $FILE
 
             # Exibe o conteúdo atualizado para debug
