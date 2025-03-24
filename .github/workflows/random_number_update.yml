@@ -14,14 +14,14 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Criar pasta economy se não existir
-        run: mkdir -p economy  # Cria a pasta economy se não existir
+        run: mkdir -p economy
 
       - name: Gerar números aleatórios e atualizar os JSONs
         run: |
           declare -A CONFIGS
-          CONFIGS["economy/stable.json"]="50 2 3"        
-          CONFIGS["economy/intermediary.json"]="150 4 5" 
-          CONFIGS["economy/unstable.json"]="500 6 7"     
+          CONFIGS["economy/stable.json"]="50 2 3"
+          CONFIGS["economy/intermediary.json"]="150 4 5"
+          CONFIGS["economy/unstable.json"]="500 6 7"
 
           for FILE in "${!CONFIGS[@]}"; do
             MAX_NUM=$(echo "${CONFIGS[$FILE]}" | cut -d' ' -f1)
@@ -61,22 +61,17 @@ jobs:
 
             if [ "$OLD_COUNT" -ge 100 ]; then
               echo "Limpeza automática: Removendo todos os registros antigos em $FILE"
-              jq '.old = []' $FILE > temp.json && mv temp.json $FILE
+              jq '.old = []' $FILE > $FILE
             fi
 
-            # Garantir que o variant e o calculation estejam presentes, se não, atribuir valores padrão
-            if [ -z "$CURRENT_VARIANT" ]; then
-              CURRENT_VARIANT="normal"
-            fi
-            if [ -z "$CURRENT_CALCULATION" ]; then
-              CURRENT_CALCULATION=0
+            echo "CURRENT_VARIANT: $CURRENT_VARIANT"
+            echo "CURRENT_CALCULATION: $CURRENT_CALCULATION"
+
+            if [ "$CURRENT_NUMBER" != "0" ]; then
+              jq ".old += [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\", \"variant\": \"$CURRENT_VARIANT\", \"calculation\": $CURRENT_CALCULATION}]" $FILE > temp.json && mv temp.json $FILE
             fi
 
-            # Adicionar o novo item ao old com o calculation
-            jq ".old = .old + [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\", \"variant\": \"$CURRENT_VARIANT\", \"calculation\": $CURRENT_CALCULATION}]" $FILE > temp.json && mv temp.json $FILE
-
-            # Atualizar a seção current com calculation
-            jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP, \"type\": \"$TYPE\", \"variant\": \"$VARIANT\", \"calculation\": $CURRENT_CALCULATION}" $FILE > temp.json && mv temp.json $FILE
+            jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP, \"type\": \"$TYPE\", \"variant\": \"$VARIANT\"}" $FILE > $FILE
 
             TOTAL_LOSS=$(jq '[.old[] | select(.type=="loss") | .number] | add // 0' $FILE)
             TOTAL_GAIN=$(jq '[.old[] | select(.type=="gain") | .number] | add // 0' $FILE)
@@ -95,7 +90,7 @@ jobs:
               CURRENT_CALCULATION=$((CURRENT_CALCULATION + RANDOM_NUMBER))
             fi
 
-            jq ".total = {\"loss\": $TOTAL_LOSS, \"gain\": $TOTAL_GAIN, \"loss_count\": $LOSS_COUNT, \"gain_count\": $GAIN_COUNT, \"calculation\": $CURRENT_CALCULATION}" $FILE > temp.json && mv temp.json $FILE
+            jq ".total = {\"loss\": $TOTAL_LOSS, \"gain\": $TOTAL_GAIN, \"loss_count\": $LOSS_COUNT, \"gain_count\": $GAIN_COUNT, \"calculation\": $CURRENT_CALCULATION}" $FILE > $FILE
 
             echo "Conteúdo atualizado de $FILE:"
             cat $FILE
