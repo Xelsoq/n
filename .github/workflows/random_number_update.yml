@@ -1,4 +1,4 @@
-name: BloxCoin Value
+name: Random Number Update
 
 on:
   schedule:
@@ -45,7 +45,7 @@ jobs:
             
             # Se o arquivo não existir, cria um JSON inicial
             if [ ! -f $FILE ]; then
-              echo '{"current": {}, "old": [], "total": {"loss": 0, "gain": 0}}' > $FILE
+              echo '{"current": {}, "total": {"loss": 0, "gain": 0, "loss_count": 0, "gain_count": 0}, "old": []}' > $FILE
             fi
 
             # Lê os dados atuais do JSON
@@ -61,19 +61,25 @@ jobs:
             # Atualiza o "current" com o novo número
             jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP, \"type\": \"$TYPE\"}" $FILE > temp.json && mv temp.json $FILE
 
-            # Recalcula o total de loss e gain
-            TOTAL_LOSS=$(jq '[.old[] | select(.type=="loss")] | length' $FILE)
-            TOTAL_GAIN=$(jq '[.old[] | select(.type=="gain")] | length' $FILE)
+            # Recalcula os totais de loss e gain somando os números
+            TOTAL_LOSS=$(jq '[.old[] | select(.type=="loss") | .number] | add // 0' $FILE)
+            TOTAL_GAIN=$(jq '[.old[] | select(.type=="gain") | .number] | add // 0' $FILE)
 
             # Adiciona o current no total
             if [ "$TYPE" == "loss" ]; then
-              TOTAL_LOSS=$((TOTAL_LOSS + 1))
+              TOTAL_LOSS=$((TOTAL_LOSS + RANDOM_NUMBER))
+              LOSS_COUNT=$(jq '.total.loss_count' $FILE)
+              LOSS_COUNT=$((LOSS_COUNT + 1))
+              GAIN_COUNT=$(jq '.total.gain_count' $FILE)
             else
-              TOTAL_GAIN=$((TOTAL_GAIN + 1))
+              TOTAL_GAIN=$((TOTAL_GAIN + RANDOM_NUMBER))
+              GAIN_COUNT=$(jq '.total.gain_count' $FILE)
+              GAIN_COUNT=$((GAIN_COUNT + 1))
+              LOSS_COUNT=$(jq '.total.loss_count' $FILE)
             fi
 
-            # Atualiza o "total"
-            jq ".total = {\"loss\": $TOTAL_LOSS, \"gain\": $TOTAL_GAIN}" $FILE > temp.json && mv temp.json $FILE
+            # Atualiza o "total" abaixo do "current"
+            jq ".total = {\"loss\": $TOTAL_LOSS, \"gain\": $TOTAL_GAIN, \"loss_count\": $LOSS_COUNT, \"gain_count\": $GAIN_COUNT}" $FILE > temp.json && mv temp.json $FILE
 
             # Exibe o conteúdo atualizado para debug
             echo "Conteúdo atualizado de $FILE:"
