@@ -68,7 +68,7 @@ jobs:
             CURRENT_TYPE=$(jq -r '.current.type' $FILE)
             CURRENT_VARIANT=$(jq -r '.current.variant' $FILE)
 
-            # Move o current para "old" se já existir (adicionando no topo)
+            # Verifica se o current já existe, para movê-lo para "old"
             if [ "$CURRENT_NUMBER" != "null" ]; then
               jq ".old = [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\", \"variant\": \"$CURRENT_VARIANT\"}] + .old" $FILE > temp.json && mv temp.json $FILE
             fi
