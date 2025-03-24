@@ -1,17 +1,23 @@
 {
   "current": {
-    "number": 83,
-    "timestamp": 1742790474,
-    "type": "gain",
-    "variant": "normal"
+    "number": 43,
+    "timestamp": 1742790504,
+    "type": "loss",
+    "variant": "volatile"
   },
   "total": {
-    "loss": 0,
+    "loss": 43,
     "gain": 205,
-    "loss_count": 0,
+    "loss_count": 1,
     "gain_count": 2
   },
   "old": [
+    {
+      "number": 83,
+      "timestamp": 1742790474,
+      "type": "gain",
+      "variant": "normal"
+    },
     {
       "number": 122,
       "timestamp": 1742790438,
