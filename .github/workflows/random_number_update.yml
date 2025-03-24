@@ -64,6 +64,10 @@ jobs:
               jq '.old = []' $FILE > temp.json && mv temp.json $FILE
             fi
 
+            # Debug para garantir que calculation e variant estão presentes
+            echo "CURRENT_VARIANT: $CURRENT_VARIANT"
+            echo "CURRENT_CALCULATION: $CURRENT_CALCULATION"
+
             if [ "$CURRENT_NUMBER" != "0" ]; then
               jq ".old = .old + [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\", \"variant\": \"$CURRENT_VARIANT\", \"calculation\": $CURRENT_CALCULATION}]" $FILE > temp.json && mv temp.json $FILE
             fi
