@@ -72,11 +72,11 @@ jobs:
               CURRENT_CALCULATION=0
             fi
 
-            # Adicionar o novo item ao old
+            # Adicionar o novo item ao old com o calculation
             jq ".old = .old + [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\", \"variant\": \"$CURRENT_VARIANT\", \"calculation\": $CURRENT_CALCULATION}]" $FILE > temp.json && mv temp.json $FILE
 
-            # Atualizar a seção current
-            jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP, \"type\": \"$TYPE\", \"variant\": \"$VARIANT\"}" $FILE > temp.json && mv temp.json $FILE
+            # Atualizar a seção current com calculation
+            jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP, \"type\": \"$TYPE\", \"variant\": \"$VARIANT\", \"calculation\": $CURRENT_CALCULATION}" $FILE > temp.json && mv temp.json $FILE
 
             TOTAL_LOSS=$(jq '[.old[] | select(.type=="loss") | .number] | add // 0' $FILE)
             TOTAL_GAIN=$(jq '[.old[] | select(.type=="gain") | .number] | add // 0' $FILE)
