@@ -1,47 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timestamp API</title>
+    <title>Player de Vídeo</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        video {
+            max-width: 90%;
+        }
+    </style>
 </head>
 <body>
-    <script>
-        // Função para pegar o parâmetro "data" da URL
-        function getQueryParam(name) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(name);
-        }
-
-        // Função para converter a data ISO 8601 para timestamp
-        function convertToTimestamp(date) {
-            const dateObj = new Date(date);
-            if (isNaN(dateObj.getTime())) {
-                return { error: "Invalid date format" };
-            }
-            const totalSeconds = dateObj.getTime() / 1000;
-            return {
-                timestamp: Math.floor(totalSeconds),
-                decimal: (totalSeconds % 1).toFixed(1).substring(1)
-            };
-        }
-
-        const date = getQueryParam('data');
-        let jsonResponse;
-
-        if (date) {
-            jsonResponse = convertToTimestamp(date);
-        } else {
-            jsonResponse = { error: "No 'data' parameter in URL" };
-        }
-
-        // Aqui vamos garantir que o conteúdo de resposta seja realmente JSON
-        if (typeof jsonResponse === "object") {
-            document.body.innerText = JSON.stringify(jsonResponse, null, 4);
-        } else {
-            document.body.innerText = JSON.stringify({ error: "An unexpected error occurred" }, null, 4);
-        }
-        document.head.innerHTML += '<meta http-equiv="Content-Type" content="application/json">';
-    </script>
+    <video id="meuVideo" controls autoplay>
+        <source src="https://github.com/Uneikee/n/raw/refs/heads/main/Roblox-2025-06-05T13_46_11.704Z.mp4" type="video/mp4">
+        Seu navegador não suporta o elemento de vídeo.
+    </video>
 </body>
 </html>
