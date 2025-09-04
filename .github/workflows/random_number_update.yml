@@ -35,7 +35,7 @@ jobs:
               continue
             fi
 
-            RANDOM_NUMBER=$(( (RANDOM % 300) + 1 ))
+            RANDOM_NUMBER=$(( (RANDOM % 100) + 1 ))
             TIMESTAMP=$(date +%s)
 
             if [ $((RANDOM % 10)) -lt "$LOSS_CHANCE" ]; then
