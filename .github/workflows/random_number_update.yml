@@ -2,8 +2,8 @@ name: Random Number Update
 
 on:
   schedule:
-    - cron: '*/1 * * * *'  # Executa a cada 1 minuto
-  workflow_dispatch:  # Permite execução manual
+    - cron: '*/1 * * * *' 
+  workflow_dispatch: 
 
 jobs:
   update-json:
@@ -16,81 +16,67 @@ jobs:
       - name: Criar pasta economy se não existir
         run: mkdir -p economy
 
-      - name: Gerar números aleatórios e atualizar os JSONs
+      - name: Gerar porcentagens aleatórias e atualizar os JSONs
         run: |
           set -euo pipefail
 
-          # Configurações: [MAX_NUM LOSS_CHANCE UPDATE_CHANCE]
           declare -A CONFIGS=(
-            ["economy/stable.json"]="50 2 3"
-            ["economy/intermediary.json"]="150 4 5"
-            ["economy/unstable.json"]="500 6 7"
+            ["economy/stable.json"]="2 3"
+            ["economy/intermediary.json"]="4 5"
+            ["economy/unstable.json"]="6 7"
           )
 
           for FILE in "${!CONFIGS[@]}"; do
-            # Extrair os parâmetros de configuração
-            MAX_NUM=$(echo "${CONFIGS[$FILE]}" | awk '{print $1}')
-            LOSS_CHANCE=$(echo "${CONFIGS[$FILE]}" | awk '{print $2}')
-            UPDATE_CHANCE=$(echo "${CONFIGS[$FILE]}" | awk '{print $3}')
+            LOSS_CHANCE=$(echo "${CONFIGS[$FILE]}" | awk '{print $1}')
+            UPDATE_CHANCE=$(echo "${CONFIGS[$FILE]}" | awk '{print $2}')
 
-            # Verifica se haverá atualização com base na chance definida
             if [ $((RANDOM % 10)) -ge "$UPDATE_CHANCE" ]; then
               echo "Nenhuma atualização para $FILE"
               continue
             fi
 
-            RANDOM_NUMBER=$((RANDOM % (MAX_NUM + 1)))
+            RANDOM_NUMBER=$(( (RANDOM % 300) + 1 ))
             TIMESTAMP=$(date +%s)
 
-            # Define o tipo (loss ou gain) conforme a chance de perda
             if [ $((RANDOM % 10)) -lt "$LOSS_CHANCE" ]; then
               TYPE="loss"
             else
               TYPE="gain"
             fi
 
-            # Define a variante (normal ou volatile)
             VARIANT="normal"
             if [ $((RANDOM % 10)) -lt 3 ]; then
               VARIANT="volatile"
             fi
 
-            # Se o arquivo não existir ou estiver vazio, cria-o com estrutura padrão
             if [ ! -s "$FILE" ]; then
               echo '{"current": {}, "total": {"loss": 0, "gain": 0, "loss_count": 0, "gain_count": 0, "calculation": 0}, "old": []}' > "$FILE"
             fi
 
-            # Verifica se já existe um registro atual válido (com propriedades definidas)
             CURRENT_EXISTS=$(jq 'has("current") and (.current | has("timestamp")) and (.current | has("number"))' "$FILE")
 
             if [ "$CURRENT_EXISTS" = "true" ]; then
-              # Lê os valores atuais para armazená-los em "old"
               CURRENT_NUMBER=$(jq '.current.number' "$FILE")
               CURRENT_TIMESTAMP=$(jq '.current.timestamp' "$FILE")
               CURRENT_TYPE=$(jq -r '.current.type' "$FILE")
               CURRENT_VARIANT=$(jq -r '.current.variant' "$FILE")
               CURRENT_CALCULATION=$(jq '.total.calculation' "$FILE")
-              
-              # Se o timestamp for diferente de 0, consideramos que há registro para mover
+
               if [ "$CURRENT_TIMESTAMP" -ne 0 ]; then
                 jq ".old += [{\"number\": $CURRENT_NUMBER, \"timestamp\": $CURRENT_TIMESTAMP, \"type\": \"$CURRENT_TYPE\", \"variant\": \"$CURRENT_VARIANT\", \"calculation\": $CURRENT_CALCULATION}]" "$FILE" > temp.json && mv temp.json "$FILE"
               fi
             else
-              # Caso não exista, define o cálculo atual como 0
               CURRENT_CALCULATION=0
             fi
 
-            # Limpeza automática: se o array "old" tiver 100 ou mais registros, esvazia-o
             OLD_COUNT=$(jq '.old | length' "$FILE")
             if [ "$OLD_COUNT" -ge 100 ]; then
               echo "Limpeza automática: Removendo todos os registros antigos em $FILE"
               jq '.old = []' "$FILE" > temp.json && mv temp.json "$FILE"
             fi
 
-            # Atualiza o registro "current" com os novos valores
             jq ".current = {\"number\": $RANDOM_NUMBER, \"timestamp\": $TIMESTAMP, \"type\": \"$TYPE\", \"variant\": \"$VARIANT\"}" "$FILE" > temp.json && mv temp.json "$FILE"
 
-            # Atualiza os totais com base no novo registro
             TOTAL_LOSS=$(jq '[.old[] | select(.type=="loss") | .number] | add // 0' "$FILE")
             TOTAL_GAIN=$(jq '[.old[] | select(.type=="gain") | .number] | add // 0' "$FILE")
             LOSS_COUNT=$(jq '.total.loss_count' "$FILE")
