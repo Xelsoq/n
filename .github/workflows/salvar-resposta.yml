@@ -1,0 +1,29 @@
+name: Salvar resposta do formulário
+
+on:
+  repository_dispatch:
+    types: [nova_resposta]
+
+jobs:
+  salvar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositório
+        uses: actions/checkout@v4
+
+      - name: Criar pasta se não existir
+        run: mkdir -p data
+
+      - name: Salvar resposta em JSON
+        run: |
+          FILE_NAME="data/resposta-$(date +'%Y-%m-%dT%H-%M-%S').json"
+          echo '${{ toJson(github.event.client_payload) }}' > "$FILE_NAME"
+          cat "$FILE_NAME"
+
+      - name: Commit e push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git commit -m "Nova resposta de formulário"
+          git push
