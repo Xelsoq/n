@@ -1,16 +1,16 @@
 {
   "current": {
-    "number": 67,
-    "timestamp": 1764588535,
-    "type": "gain",
-    "variant": "volatile"
+    "number": 31,
+    "timestamp": 1764589195,
+    "type": "loss",
+    "variant": "normal"
   },
   "total": {
-    "loss": 432,
+    "loss": 463,
     "gain": 658,
-    "loss_count": 1776,
+    "loss_count": 1777,
     "gain_count": 2644,
-    "calculation": 44758
+    "calculation": 44727
   },
   "old": [
     {
@@ -145,6 +145,13 @@
       "type": "gain",
       "variant": "volatile",
       "calculation": 44691
+    },
+    {
+      "number": 67,
+      "timestamp": 1764588535,
+      "type": "gain",
+      "variant": "volatile",
+      "calculation": 44758
     }
   ]
 }
